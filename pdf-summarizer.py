@@ -4,6 +4,16 @@ import google.generativeai as genai
 import os
 import sys
 
+if len(sys.argv) != 2:
+    print("Usage: {} <filename>".format(sys.argv[0]))
+    sys.exit(1)
+
+file_name = sys.argv[1]
+
+if not os.path.exists(file_name):
+    print("Error: File '{}' does not exist.".format(file_name))
+    sys.exit(1)
+
 # get API key
 # let environment variable take precedence, but if not set, then look for a file in ~/.config/
 file_path = os.path.expanduser("~/.config/gemini.token")
@@ -31,7 +41,7 @@ genai.configure(api_key=google_api_key)
 
 # show model name
 model_name = "gemini-2.5-flash"
-print(f"# Using {model_name} .")
+print(f"# Using {model_name} to produce a summary of {file_name}.")
 
 model = genai.GenerativeModel(model_name)
 response = model.generate_content("Generate a haiku about nature.")
