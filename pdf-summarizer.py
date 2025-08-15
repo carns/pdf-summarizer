@@ -5,14 +5,20 @@ import os
 import sys
 import PyPDF2
 
+# --- Module-level Constants ---
+GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
+GEMINI_API_KEY_FILE = "~/.config/gemini.token" # file to read token from
+GEMINI_API_KEY_ENVVAR = "GOOGLE_API_KEY" # environment variable to get token from
+
+
 def get_google_api_key() -> str:
     """
     Find Google API key to use
     """
 
     # let environment variable take precedence, but if not set, then look for a file in ~/.config/
-    file_path = os.path.expanduser("~/.config/gemini.token")
-    google_api_key = os.getenv("GOOGLE_API_KEY")
+    file_path = os.path.expanduser(GEMINI_API_KEY_FILE)
+    google_api_key = os.getenv(GEMINI_API_KEY_ENVVAR)
     if google_api_key is None:
         try:
             with open(file_path, 'r') as f:
@@ -73,17 +79,12 @@ def main():
     genai.configure(api_key=google_api_key)
 
     # show model name
-    model_name = "gemini-2.5-flash"
-    print(f"# Using {model_name} to produce a summary of {file_name}.")
-    model = genai.GenerativeModel(model_name)
+    print(f"# Using {GEMINI_MODEL_NAME} to produce a summary of {file_name}.")
+    model = genai.GenerativeModel(GEMINI_MODEL_NAME)
 
     # read contents of pdf
     print(f"# Reading contents of {file_name}...")
     document_text = extract_text_from_pdf(file_name)
-
-    # debugging
-    # print(document_text)
-    # sys.exit(0)
 
     print(f"# Quering model for a summary...")
     # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
