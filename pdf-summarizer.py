@@ -30,7 +30,9 @@ if google_api_key is None:
 genai.configure(api_key=google_api_key)
 
 # show model name
-for model in genai.list_models():
-    if "generateContent" in model.supported_generation_methods:
-        print(f"# Using {model.name} .")
-        break # Print the first found model that supports content generation
+model_name = "gemini-2.5-flash"
+print(f"# Using {model_name} .")
+
+model = genai.GenerativeModel(model_name)
+response = model.generate_content("Generate a haiku about nature.")
+print(response.text)
