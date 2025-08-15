@@ -47,8 +47,6 @@ if google_api_key is None:
         google_api_key = None
     except Exception as e:
         google_api_key = None
-    else:
-        f.close()
 
 # NOTE: I would like to also support getting an API key from gnome keyring.  That would be an exercise for later
 
