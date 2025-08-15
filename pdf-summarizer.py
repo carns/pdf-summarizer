@@ -29,8 +29,8 @@ if google_api_key is None:
 # Configure API key
 genai.configure(api_key=google_api_key)
 
-# print model name
+# show model name
 for model in genai.list_models():
     if "generateContent" in model.supported_generation_methods:
-        print(model.name)
+        print(f"# Using {model.name} .")
         break # Print the first found model that supports content generation
