@@ -3,6 +3,27 @@
 import google.generativeai as genai
 import os
 import sys
+import PyPDF2
+
+def extract_text_from_pdf(pdf_path: str) -> str:
+    """
+    Extracts text from a given PDF file.
+    """
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            for page_num in range(len(reader.pages)):
+                page = reader.pages[page_num]
+                text += page.extract_text()
+        return text
+    except FileNotFoundError:
+        print(f"Error: PDF file not found at '{pdf_path}'")
+        return ""
+    except Exception as e:
+        print(f"An error occurred while reading the PDF: {e}")
+        return ""
+
 
 if len(sys.argv) != 2:
     print("Usage: {} <filename>".format(sys.argv[0]))
@@ -42,7 +63,17 @@ genai.configure(api_key=google_api_key)
 # show model name
 model_name = "gemini-2.5-flash"
 print(f"# Using {model_name} to produce a summary of {file_name}.")
-
 model = genai.GenerativeModel(model_name)
-response = model.generate_content("Generate a haiku about nature.")
+
+# read contents of pdf
+print(f"# Reading contents of {file_name}...")
+document_text = extract_text_from_pdf(file_name)
+
+# debugging
+# print(document_text)
+# sys.exit(0)
+
+print(f"# Quering model for a summary...")
+prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
+response = model.generate_content(prompt)
 print(response.text)
