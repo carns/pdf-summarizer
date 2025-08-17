@@ -100,24 +100,31 @@ def main():
     """
     Main routine for summarizing a pdf file name specified on the command line
     """
+
     parser = argparse.ArgumentParser(
         description="Summarize a PDF file using Google's Gemini API.",
         formatter_class=argparse.RawTextHelpFormatter # Useful for multiline descriptions/help
     )
     parser.add_argument("filename", help="Path to the PDF file to be summarized.")
+    parser.add_argument("-o", "--output", dest="output_filename", help="Specify the name of the output file. If not provided, defaults to the input filename with '.md' appended.")
+
     args = parser.parse_args() # This handles sys.argv automatically
 
-    file_name = args.filename
+    filename = args.filename
+    if args.output_filename:
+        output_filename = args.output_filename
+    else:
+        output_filename = filename + ".md"
 
     # read contents of pdf
-    print(f"Reading contents of {file_name}...")
+    print(f"Reading contents of {filename}...")
     try:
-        document_text = extract_text_from_pdf(file_name)
+        document_text = extract_text_from_pdf(filename)
     except FileNotFoundError:
-        print(f"Error: PDF file not found at '{file_name}'", file=sys.stderr)
+        print(f"Error: PDF file not found at '{filename}'", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"Error: Unabe to read PDF '{file_name}': {e}", file=sys.stderr)
+        print(f"Error: Unabe to read PDF '{filename}': {e}", file=sys.stderr)
         sys.exit(1)
 
     # get api key
