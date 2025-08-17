@@ -27,7 +27,7 @@ def generate_summary(document_text:str, model_name:str) -> str:
         str: summary
     """
 
-    model = genai.GenerativeModel(GEMINI_MODEL_NAME)
+    model = genai.GenerativeModel(model_name)
 
     # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
     prompt = f"""Summarize the following document in markdown format.  The heading should be the title of the document.  After the heading,
@@ -62,7 +62,7 @@ def get_google_api_key() -> str:
         file_path = os.path.expanduser(GEMINI_API_KEY_FILE)
         with open(file_path, 'r') as f:
             google_api_key = f.read().strip()
-            return(google_api_key)
+            return google_api_key
     except FileNotFoundError:
         # File doesn't exist, which is expected if not configured this way.
         pass
