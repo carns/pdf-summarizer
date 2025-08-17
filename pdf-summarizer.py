@@ -5,6 +5,7 @@ import os
 import sys
 import PyPDF2
 import argparse
+# import crossref
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
@@ -15,7 +16,7 @@ class GoogleAPIKeyError(Exception):
     """Custom exception raised when the Google API key cannot be found."""
     pass
 
-def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> str:
+def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> dict:
     """
     Generate summary of document_text
 
@@ -25,7 +26,7 @@ def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> 
         linebreak_flag (bool): should text use 80 character line breaks
 
     Returns:
-        str: summary
+        dict: dictionary with summary information about document
     """
 
     model = genai.GenerativeModel(model_name)
@@ -46,7 +47,9 @@ def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> 
 
     response = model.generate_content(prompt)
 
-    return response.text
+    summary = {}
+    summary["text"] = response.text
+    return summary
 
 
 def get_google_api_key() -> str:
@@ -171,7 +174,7 @@ def main():
 
     # write summary
     with open(output_filename, 'wt') as file:
-        file.write(summary)
+        file.write(summary["text"])
 
 if __name__ == "__main__":
     main()
