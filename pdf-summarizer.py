@@ -15,6 +15,30 @@ class GoogleAPIKeyError(Exception):
     """Custom exception raised when the Google API key cannot be found."""
     pass
 
+def generate_summary(document_text:str, model_name:str) -> str:
+    """
+    Generate summary of document_text
+
+    Args:
+        document_text (str): complete document to summarize
+        model_name (str): name of the Gemini model to use
+
+    Returns:
+        str: summary
+    """
+
+    model = genai.GenerativeModel(GEMINI_MODEL_NAME)
+
+    # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
+    prompt = f"""Summarize the following document in markdown format.  The heading should be the title of the document.  After the heading,
+    list the document authors.  After the document authors, generate a concise paragraph that summarizes the document for a computer
+    science audience.:\n\n{document_text}"""
+
+    response = model.generate_content(prompt)
+
+    return response.text
+
+
 def get_google_api_key() -> str:
     """
     Find Google API key to use.
@@ -58,6 +82,12 @@ def get_google_api_key() -> str:
 def extract_text_from_pdf(pdf_path: str) -> str:
     """
     Extracts text from a given PDF file.
+
+    Args:
+        pdf_path (str): path to the PDF file to parse
+
+    Returns:
+        str: contents of the PDF in string form
     """
     text = ""
     with open(pdf_path, 'rb') as file:
@@ -80,7 +110,7 @@ def main():
     file_name = args.filename
 
     # read contents of pdf
-    print(f"# Reading contents of {file_name}...")
+    print(f"Reading contents of {file_name}...")
     try:
         document_text = extract_text_from_pdf(file_name)
     except FileNotFoundError:
@@ -91,9 +121,9 @@ def main():
         sys.exit(1)
 
     # get api key
+    print(f"Getting API key...")
     try:
         api_key = get_google_api_key()
-        print("# Found API key")
     except GoogleAPIKeyError as e:
         print(f"Error: could not ackquire API key: {e}", file=sys.stderr)
         sys.exit(1)
@@ -104,17 +134,15 @@ def main():
     # Configure API key
     genai.configure(api_key=api_key)
 
-    # show model name
-    print(f"# Using {GEMINI_MODEL_NAME} to produce a summary of {file_name}.")
-    model = genai.GenerativeModel(GEMINI_MODEL_NAME)
+    # Generate summary
+    print(f"Using {GEMINI_MODEL_NAME} to generate summary...")
+    try:
+        summary = generate_summary(document_text=document_text, model_name=GEMINI_MODEL_NAME)
+    except Exception as e:
+        print(f"Error: unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    print(f"# Querying model for a summary...")
-    # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
-    prompt = f"""Summarize the following document in markdown format.  The heading should be the title of the document.  After the heading,
-    list the document authors.  After the document authors, generate a concise paragraph that summarizes the document for a computer
-    science audience.:\n\n{document_text}"""
-    response = model.generate_content(prompt)
-    print(response.text)
+    print(summary)
 
 if __name__ == "__main__":
     main()
