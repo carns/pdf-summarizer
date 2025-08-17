@@ -6,6 +6,8 @@
 #
 annotated-types==0.7.0
     # via pydantic
+argparse==1.4.0
+    # via -r requirements.in
 cachetools==5.5.2
     # via google-auth
 certifi==2025.8.3
