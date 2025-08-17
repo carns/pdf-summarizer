@@ -5,6 +5,7 @@ import os
 import sys
 import PyPDF2
 import argparse
+import json
 # import crossref
 
 # --- Module-level Constants ---
@@ -16,14 +17,13 @@ class GoogleAPIKeyError(Exception):
     """Custom exception raised when the Google API key cannot be found."""
     pass
 
-def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> dict:
+def generate_summary(document_text:str, model_name:str) -> dict:
     """
     Generate summary of document_text
 
     Args:
         document_text (str): complete document to summarize
         model_name (str): name of the Gemini model to use
-        linebreak_flag (bool): should text use 80 character line breaks
 
     Returns:
         dict: dictionary with summary information about document
@@ -31,24 +31,37 @@ def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> 
 
     model = genai.GenerativeModel(model_name)
 
-    if linebreak_flag:
-        prompt = "Use 80 character line breaks for all grenerated text. "
-    else:
-        prompt = ""
+    prompt = f"""Summarize the following document and provide the
+    information in a JSON object.
 
-    prompt += f"""Summarize the following document in markdown format.  Use
-    the title of the document as a subsection heading.  There should be
-    three sub-sub-sections.  The first is called Authors and will contain a
-    comma-separated
-    list of authors.  The second is called Summary and will contain a
-    concise paragraph summarizing the document for a computer science
-    audience.  The third is called Significance and can be left empty.
+    The JSON object should have the following keys.  If any cannot be
+    determined, then leave the value empty.
+    - "title": (string) The title of the document.
+    - "authors": (array of strings) A list of the authors of the document
+    - "synopsis": A concise paragraph summarizing the document for a computer
+      science audience
+
+    Here is the document:
     \n\n{document_text}"""
 
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json"
+            )
+        )
 
-    summary = {}
-    summary["text"] = response.text
+        # Parse the JSON string from the response
+        # The 'response.text' attribute will contain the JSON string
+        summary = json.loads(response.text)
+
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON response: {e}")
+        print(f"Raw response text: {response.text}")
+    except Exception as e:
+        print(f"An error occurred during content generation: {e}")
+
     return summary
 
 
@@ -123,14 +136,9 @@ def main():
     parser.add_argument("-o", "--output",
                         dest="output_filename",
                         help="Specify the name of the output file. If not provided, defaults to the input filename with '.md' appended.")
-    parser.add_argument("-l", "--linebreak",
-                        action="store_true",
-                        dest="linebreak_flag",
-                        help="Use 80 char line breaks in output")
 
     args = parser.parse_args() # This handles sys.argv automatically
 
-    linebreak_flag = args.linebreak_flag
     filename = args.filename
     if args.output_filename:
         output_filename = args.output_filename
@@ -166,15 +174,19 @@ def main():
     print(f"Using {GEMINI_MODEL_NAME} to generate summary...")
     try:
         summary = generate_summary(document_text=document_text,
-                                   model_name=GEMINI_MODEL_NAME,
-                                   linebreak_flag=linebreak_flag)
+                                   model_name=GEMINI_MODEL_NAME)
     except Exception as e:
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
     # write summary
     with open(output_filename, 'wt') as file:
-        file.write(summary["text"])
+        file.write(f"## {summary['title']}\n\n")
+        file.write(f"### Authors\n")
+        file.write(f"{', '.join(summary['authors'])}\n\n")
+        file.write(f"### Synopsis\n")
+        file.write(f"{summary['synopsis']}\n\n")
+        file.write(f"### Significance\n")
 
 if __name__ == "__main__":
     main()
