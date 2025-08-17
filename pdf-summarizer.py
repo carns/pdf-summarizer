@@ -84,10 +84,10 @@ def main():
     try:
         document_text = extract_text_from_pdf(file_name)
     except FileNotFoundError:
-        print(f"Error: PDF file not found at '{file_name}'")
+        print(f"Error: PDF file not found at '{file_name}'", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"Error: Unabe to read PDF '{file_name}': {e}")
+        print(f"Error: Unabe to read PDF '{file_name}': {e}", file=sys.stderr)
         sys.exit(1)
 
     # get api key
@@ -95,10 +95,10 @@ def main():
         api_key = get_google_api_key()
         print("# Found API key")
     except GoogleAPIKeyError as e:
-        print(f"Error: could not ackquire API key: {e}")
+        print(f"Error: could not ackquire API key: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(f"Error: unexpected error: {e}")
+        print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
     # Configure API key
