@@ -181,11 +181,11 @@ def main():
 
     # write summary
     with open(output_filename, 'wt') as file:
-        file.write(f"## {summary['title']}\n\n")
+        file.write(f"## {summary.get('title', "N/A")}\n\n")
         file.write(f"### Authors\n")
-        file.write(f"{', '.join(summary['authors'])}\n\n")
+        file.write(f"{', '.join(summary.get('authors', None))}\n\n")
         file.write(f"### Synopsis\n")
-        file.write(f"{summary['synopsis']}\n\n")
+        file.write(f"{summary.get('synopsis', "")}\n\n")
         file.write(f"### Significance\n")
 
 if __name__ == "__main__":
