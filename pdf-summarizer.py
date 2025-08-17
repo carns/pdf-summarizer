@@ -220,7 +220,7 @@ def main():
                 for author in authors:
                     given = author.get('given', '')
                     family = author.get('family', '')
-                author_list.append(f"{given} {family}")
+                    author_list.append(f"{given} {family}")
                 file.write(f"{', '.join(author_list)}, ")
             file.write(f"\"{citation.get('title')[0]},\"")
             if citation.get('container-title'):
@@ -233,7 +233,7 @@ def main():
             year = published_date_parts[0][0] if published_date_parts else None
             if year:
                 file.write(f", {year}")
-            file.write("\n")
+            file.write("\n\n")
 
 
 if __name__ == "__main__":
