@@ -7,7 +7,7 @@ import PyPDF2
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
-GEMINI_API_KEY_FILE = "~/.config/gemini.token-foo" # file to read token from
+GEMINI_API_KEY_FILE = "~/.config/gemini.token" # file to read token from
 GEMINI_API_KEY_ENVVAR = "GOOGLE_API_KEY" # environment variable to get token from
 
 class GoogleAPIKeyError(Exception):
@@ -57,20 +57,12 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     Extracts text from a given PDF file.
     """
     text = ""
-    try:
-        with open(pdf_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page_num in range(len(reader.pages)):
-                page = reader.pages[page_num]
-                text += page.extract_text()
-        return text
-    except FileNotFoundError:
-        print(f"Error: PDF file not found at '{pdf_path}'")
-        return ""
-    except Exception as e:
-        print(f"An error occurred while reading the PDF: {e}")
-        return ""
-
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+            text += page.extract_text()
+    return text
 
 def main():
     """
@@ -82,8 +74,16 @@ def main():
         print("Usage: {} <filename>".format(sys.argv[0]))
         sys.exit(1)
     file_name = sys.argv[1]
-    if not os.path.exists(file_name):
-        print("Error: File '{}' does not exist.".format(file_name))
+
+    # read contents of pdf
+    print(f"# Reading contents of {file_name}...")
+    try:
+        document_text = extract_text_from_pdf(file_name)
+    except FileNotFoundError:
+        print(f"Error: PDF file not found at '{file_name}'")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Unabe to read PDF '{file_name}': {e}")
         sys.exit(1)
 
     # get api key
@@ -94,19 +94,15 @@ def main():
         print(f"Error: could not ackquire API key: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(f"Error: unexpected error: {e}")
         sys.exit(1)
 
     # Configure API key
-    genai.configure(api_key=google_api_key)
+    genai.configure(api_key=api_key)
 
     # show model name
     print(f"# Using {GEMINI_MODEL_NAME} to produce a summary of {file_name}.")
     model = genai.GenerativeModel(GEMINI_MODEL_NAME)
-
-    # read contents of pdf
-    print(f"# Reading contents of {file_name}...")
-    document_text = extract_text_from_pdf(file_name)
 
     print(f"# Querying model for a summary...")
     # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
