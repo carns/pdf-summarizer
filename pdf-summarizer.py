@@ -15,13 +15,14 @@ class GoogleAPIKeyError(Exception):
     """Custom exception raised when the Google API key cannot be found."""
     pass
 
-def generate_summary(document_text:str, model_name:str) -> str:
+def generate_summary(document_text:str, model_name:str, linebreak_flag:bool) -> str:
     """
     Generate summary of document_text
 
     Args:
         document_text (str): complete document to summarize
         model_name (str): name of the Gemini model to use
+        linebreak_flag (bool): should text use 80 character line breaks
 
     Returns:
         str: summary
@@ -29,8 +30,12 @@ def generate_summary(document_text:str, model_name:str) -> str:
 
     model = genai.GenerativeModel(model_name)
 
-    # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
-    prompt = f"""Summarize the following document in markdown format.  Use
+    if linebreak_flag:
+        prompt = "Use 80 character line breaks for all grenerated text. "
+    else:
+        prompt = ""
+
+    prompt += f"""Summarize the following document in markdown format.  Use
     the title of the document as a subsection heading.  There should be
     three sub-sub-sections.  The first is called Authors and will contain a
     comma-separated
@@ -110,11 +115,19 @@ def main():
         description="Summarize a PDF file using Google's Gemini API.",
         formatter_class=argparse.RawTextHelpFormatter # Useful for multiline descriptions/help
     )
-    parser.add_argument("filename", help="Path to the PDF file to be summarized.")
-    parser.add_argument("-o", "--output", dest="output_filename", help="Specify the name of the output file. If not provided, defaults to the input filename with '.md' appended.")
+    parser.add_argument("filename",
+                        help="Path to the PDF file to be summarized.")
+    parser.add_argument("-o", "--output",
+                        dest="output_filename",
+                        help="Specify the name of the output file. If not provided, defaults to the input filename with '.md' appended.")
+    parser.add_argument("-l", "--linebreak",
+                        action="store_true",
+                        dest="linebreak_flag",
+                        help="Use 80 char line breaks in output")
 
     args = parser.parse_args() # This handles sys.argv automatically
 
+    linebreak_flag = args.linebreak_flag
     filename = args.filename
     if args.output_filename:
         output_filename = args.output_filename
@@ -149,7 +162,9 @@ def main():
     # generate summary
     print(f"Using {GEMINI_MODEL_NAME} to generate summary...")
     try:
-        summary = generate_summary(document_text=document_text, model_name=GEMINI_MODEL_NAME)
+        summary = generate_summary(document_text=document_text,
+                                   model_name=GEMINI_MODEL_NAME,
+                                   linebreak_flag=linebreak_flag)
     except Exception as e:
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
