@@ -6,7 +6,7 @@ import sys
 import PyPDF2
 import argparse
 import json
-import crossref
+from habanero import Crossref
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
@@ -179,6 +179,31 @@ def main():
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
+    # TODO: refactor into a function
+
+    # look up citation if possible
+    print(f"Using crossref to look up citation...")
+    cr = Crossref() # create a Crossref object
+    if summary.get('authors') and summary.get('title'):
+        try:
+            # Use cr.works().query() for a general search.
+            # query_title: Searches for keywords in the title.
+            # query_author: Searches for keywords in author names.
+            # .sort('relevance'): Tries to get the most relevant result first.
+            # .limit(1): Fetches only the top 1 result.
+            # .fetch(): Executes the query and returns the results.
+            results = cr.works(
+                query_title=summary.get('title'),
+                query_author=summary.get('authors')[0],
+                limit=1,
+                sort='relevance'
+            )
+            if results:
+                citation = results['message']['items'][0]
+        except Exception as e:
+            print(f"Unable to find citation: {e}")
+
+    # TODO: refactor into a function
     # write summary
     with open(output_filename, 'wt') as file:
         file.write(f"## {summary.get('title', "N/A")}\n\n")
@@ -186,7 +211,30 @@ def main():
         file.write(f"{', '.join(summary.get('authors', None))}\n\n")
         file.write(f"### Synopsis\n")
         file.write(f"{summary.get('synopsis', "")}\n\n")
-        file.write(f"### Significance\n")
+        file.write(f"### Significance\n\n")
+        if citation:
+            file.write(f"### Reference\n")
+            authors = citation.get('author', [])
+            author_list = []
+            if authors:
+                for author in authors:
+                    given = author.get('given', '')
+                    family = author.get('family', '')
+                author_list.append(f"{given} {family}")
+                file.write(f"{', '.join(author_list)}, ")
+            file.write(f"\"{citation.get('title')},\"")
+            if citation.get('container-title'):
+                file.write(f"{citation.get('container-title')[0]}")
+            # Extract year from published date-parts
+            # 'date-parts' is often a list of lists, e.g., [[2023, 10, 26]]
+            published_date_parts = citation.get('published', {}).get(
+                'date-parts', [['N/A']]
+            )
+            year = published_date_parts[0][0] if published_date_parts else None
+            if year:
+                file.write(f", {year}")
+            file.write("\n")
+
 
 if __name__ == "__main__":
     main()
