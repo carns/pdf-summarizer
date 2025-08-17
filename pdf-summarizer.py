@@ -222,7 +222,7 @@ def main():
                     family = author.get('family', '')
                 author_list.append(f"{given} {family}")
                 file.write(f"{', '.join(author_list)}, ")
-            file.write(f"\"{citation.get('title')},\"")
+            file.write(f"\"{citation.get('title')[0]},\"")
             if citation.get('container-title'):
                 file.write(f"{citation.get('container-title')[0]}")
             # Extract year from published date-parts
