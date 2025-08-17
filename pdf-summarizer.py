@@ -30,9 +30,14 @@ def generate_summary(document_text:str, model_name:str) -> str:
     model = genai.GenerativeModel(model_name)
 
     # prompt = f"Summarize the following document in a single paragraph for a computer science audience:\n\n{document_text}"
-    prompt = f"""Summarize the following document in markdown format.  The heading should be the title of the document.  After the heading,
-    list the document authors.  After the document authors, generate a concise paragraph that summarizes the document for a computer
-    science audience.:\n\n{document_text}"""
+    prompt = f"""Summarize the following document in markdown format.  Use
+    the title of the document as a subsection heading.  There should be
+    three sub-sub-sections.  The first is called Authors and will contain a
+    comma-separated
+    list of authors.  The second is called Summary and will contain a
+    concise paragraph summarizing the document for a computer science
+    audience.  The third is called Significance and can be left empty.
+    \n\n{document_text}"""
 
     response = model.generate_content(prompt)
 
@@ -138,10 +143,10 @@ def main():
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Configure API key
+    # configure API key
     genai.configure(api_key=api_key)
 
-    # Generate summary
+    # generate summary
     print(f"Using {GEMINI_MODEL_NAME} to generate summary...")
     try:
         summary = generate_summary(document_text=document_text, model_name=GEMINI_MODEL_NAME)
@@ -149,7 +154,9 @@ def main():
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    print(summary)
+    # write summary
+    with open(output_filename, 'wt') as file:
+        file.write(summary)
 
 if __name__ == "__main__":
     main()
