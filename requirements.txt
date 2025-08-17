@@ -8,12 +8,16 @@ annotated-types==0.7.0
     # via pydantic
 argparse==1.4.0
     # via -r requirements.in
+backoff==2.2.1
+    # via -r requirements.in
 cachetools==5.5.2
     # via google-auth
 certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.3
     # via requests
+crossref==0.1.2
+    # via -r requirements.in
 google-ai-generativelanguage==0.6.15
     # via google-generativeai
 google-api-core[grpc]==2.25.1

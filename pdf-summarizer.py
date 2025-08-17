@@ -6,7 +6,7 @@ import sys
 import PyPDF2
 import argparse
 import json
-# import crossref
+import crossref
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
