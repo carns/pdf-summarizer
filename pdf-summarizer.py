@@ -27,23 +27,25 @@ def get_google_api_key() -> str:
         str: The found Google API key.
     """
 
-    # try environment variable first, continue if not found
-    try:
-        google_api_key = os.getenv(GEMINI_API_KEY_ENVVAR)
-    except Exception as e:
-        google_api_key = None
+    # try environment variable first
+    google_api_key = os.getenv(GEMINI_API_KEY_ENVVAR)
+    if google_api_key:
+        return google_api_key
 
     # try file next, continue if not found
-    if google_api_key is None:
-        try:
-            file_path = os.path.expanduser(GEMINI_API_KEY_FILE)
-            with open(file_path, 'r') as f:
-                google_api_key = f.read().strip()
-        except Exception as e:
-            google_api_key = None
+    try:
+        file_path = os.path.expanduser(GEMINI_API_KEY_FILE)
+        with open(file_path, 'r') as f:
+            google_api_key = f.read().strip()
+            return(google_api_key)
+    except FileNotFoundError:
+        # File doesn't exist, which is expected if not configured this way.
+        pass
+    # don't catch other exceptions; those would be unexpected
 
-    # NOTE: I would like to also support getting an API key from gnome keyring.  That would be an exercise for later
+    # NOTE: I would like to also support getting an API key from gnome keyring.  That would be an exercise for later.
 
+    # raise an exception if we get this far without finding an API key
     if google_api_key is None:
         raise GoogleAPIKeyError(
                 f"could not find Google API key in ${GEMINI_API_KEY_ENVVAR} or '{GEMINI_API_KEY_FILE}'"
