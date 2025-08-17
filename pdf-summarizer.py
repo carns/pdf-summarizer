@@ -4,6 +4,7 @@ import google.generativeai as genai
 import os
 import sys
 import PyPDF2
+import argparse
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
@@ -69,12 +70,14 @@ def main():
     """
     Main routine for summarizing a pdf file name specified on the command line
     """
+    parser = argparse.ArgumentParser(
+        description="Summarize a PDF file using Google's Gemini API.",
+        formatter_class=argparse.RawTextHelpFormatter # Useful for multiline descriptions/help
+    )
+    parser.add_argument("filename", help="Path to the PDF file to be summarized.")
+    args = parser.parse_args() # This handles sys.argv automatically
 
-    # check for file name that we are supposed to process
-    if len(sys.argv) != 2:
-        print("Usage: {} <filename>".format(sys.argv[0]))
-        sys.exit(1)
-    file_name = sys.argv[1]
+    file_name = args.filename
 
     # read contents of pdf
     print(f"# Reading contents of {file_name}...")
