@@ -133,6 +133,10 @@ def main():
     )
     parser.add_argument("filename",
                         help="Path to the PDF file to be summarized.")
+    parser.add_argument("-c", "--citation",
+                        action="store_true",
+                        dest="citation_flag",
+                        help="Optionally try to find citation")
     parser.add_argument("-o", "--output",
                         dest="output_filename",
                         help="Specify the name of the output file. If not provided, defaults to the input filename with '.md' appended.")
@@ -179,31 +183,31 @@ def main():
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # TODO: refactor into a function
-
     citation = None
 
-    # look up citation if possible
-    print(f"Using crossref to look up citation...")
-    cr = Crossref() # create a Crossref object
-    if summary.get('authors') and summary.get('title'):
-        try:
-            # Use cr.works().query() for a general search.
-            # query_title: Searches for keywords in the title.
-            # query_author: Searches for keywords in author names.
-            # .sort('relevance'): Tries to get the most relevant result first.
-            # .limit(1): Fetches only the top 1 result.
-            # .fetch(): Executes the query and returns the results.
-            results = cr.works(
-                query_title=summary.get('title'),
-                query_author=summary.get('authors')[0],
-                limit=1,
-                sort='relevance'
-            )
-            if results:
-                citation = results['message']['items'][0]
-        except Exception as e:
-            print(f"Unable to find citation: {e}")
+    if args.citation_flag:
+        # TODO: refactor into a function
+        # look up citation if possible
+        print(f"Using crossref to look up citation...")
+        cr = Crossref() # create a Crossref object
+        if summary.get('authors') and summary.get('title'):
+            try:
+                # Use cr.works().query() for a general search.
+                # query_title: Searches for keywords in the title.
+                # query_author: Searches for keywords in author names.
+                # .sort('relevance'): Tries to get the most relevant result first.
+                # .limit(1): Fetches only the top 1 result.
+                # .fetch(): Executes the query and returns the results.
+                results = cr.works(
+                    query_title=summary.get('title'),
+                    query_author=summary.get('authors')[0],
+                    limit=1,
+                    sort='relevance'
+                )
+                if results:
+                    citation = results['message']['items'][0]
+            except Exception as e:
+                print(f"Unable to find citation: {e}")
 
     # TODO: refactor into a function
     # write summary
@@ -213,7 +217,6 @@ def main():
         file.write(f"{', '.join(summary.get('authors', None))}\n\n")
         file.write(f"### Synopsis\n")
         file.write(f"{summary.get('synopsis', "")}\n\n")
-        file.write(f"### Significance\n\n")
         if citation:
             file.write(f"### Reference\n")
             authors = citation.get('author', [])
@@ -235,6 +238,7 @@ def main():
             year = published_date_parts[0][0] if published_date_parts else None
             if year:
                 file.write(f", {year}")
+
             file.write("\n\n")
 
 
