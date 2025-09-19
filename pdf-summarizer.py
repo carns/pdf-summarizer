@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import google.generativeai as genai
 import os
 import sys
 import PyPDF2
 import argparse
 import json
 from habanero import Crossref
+from google import genai
 
 # --- Module-level Constants ---
 GEMINI_MODEL_NAME = "gemini-2.5-flash" # Gemini model to use
@@ -17,19 +17,20 @@ class GoogleAPIKeyError(Exception):
     """Custom exception raised when the Google API key cannot be found."""
     pass
 
-def generate_summary(document_text:str, model_name:str) -> dict:
+def generate_summary(document_text:str, model_name:str, api_key:str) -> dict:
     """
     Generate summary of document_text
 
     Args:
         document_text (str): complete document to summarize
         model_name (str): name of the Gemini model to use
+        api_key (str): API key for Gemini
 
     Returns:
         dict: dictionary with summary information about document
     """
 
-    model = genai.GenerativeModel(model_name)
+    client = genai.Client(api_key=api_key)
 
     prompt = f"""Summarize the following document and provide the
     information in a JSON object.
@@ -45,11 +46,10 @@ def generate_summary(document_text:str, model_name:str) -> dict:
     \n\n{document_text}"""
 
     try:
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                response_mime_type="application/json"
-            )
+        response = client.models.generate_content(
+            contents=prompt,
+            model=GEMINI_MODEL_NAME,
+            config={"response_mime_type": "application/json"}
         )
 
         # Parse the JSON string from the response
@@ -171,14 +171,12 @@ def main():
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # configure API key
-    genai.configure(api_key=api_key)
-
     # generate summary
     print(f"Using {GEMINI_MODEL_NAME} to generate summary...")
     try:
         summary = generate_summary(document_text=document_text,
-                                   model_name=GEMINI_MODEL_NAME)
+                                   model_name=GEMINI_MODEL_NAME,
+                                   api_key=api_key)
     except Exception as e:
         print(f"Error: unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
