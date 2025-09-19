@@ -181,6 +181,8 @@ def main():
 
     # TODO: refactor into a function
 
+    citation = None
+
     # look up citation if possible
     print(f"Using crossref to look up citation...")
     cr = Crossref() # create a Crossref object
