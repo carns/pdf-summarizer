@@ -34,4 +34,6 @@ See `--help` for parameters to control the output format.  It can optionally att
 * `git submodule update`
 * create a python venv
 * `pip install -r requirements.txt`
-* `pip install google-api-utils/`
+
+Note that the above will also install a module called `google-api-utils`
+from the local git submodule.
