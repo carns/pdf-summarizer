@@ -193,6 +193,7 @@ def main():
                 file.write(f", {year}")
 
             file.write("\n\n")
+        print(f"Output written to '{output_filename}'.")
 
 
 if __name__ == "__main__":
