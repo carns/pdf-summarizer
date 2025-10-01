@@ -27,3 +27,10 @@ limited by available network links and fabric topology, and that the model is pa
 ```
 
 See `--help` for parameters to control the output format.  It can optionally attempt to find a reference for the paper using Crossref.
+
+To install:
+* `git submodule init`
+* `git submodule update`
+* create a python venv
+* `pip install -r requirements.txt`
+* `pip install google-api-utils/`
